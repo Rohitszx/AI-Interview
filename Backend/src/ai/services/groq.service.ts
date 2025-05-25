@@ -165,15 +165,24 @@ Format your response as a JSON object with these keys: overallAssessment, techni
 
       try {
         // Sanitize and extract only the first valid JSON object
-        const sanitized = completion
+        const cleaned = completion
           .replace(/```json[\s\n]*/gi, "")
           .replace(/```/g, "")
+          .replace(/[\u0000-\u001F\u007F]/g, "") // Remove all control chars except standard whitespace
           .trim();
-        const firstBrace = sanitized.indexOf("{");
-        const lastBrace = sanitized.lastIndexOf("}");
+        const firstBrace = cleaned.indexOf("{");
+        const lastBrace = cleaned.lastIndexOf("}");
         if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
-          const jsonString = sanitized.substring(firstBrace, lastBrace + 1);
-          return JSON.parse(jsonString);
+          const jsonString = cleaned.substring(firstBrace, lastBrace + 1);
+          try {
+            return JSON.parse(jsonString);
+          } catch (jsonError) {
+            this.logger.error(`Error parsing JSON response: ${jsonError.message}`);
+            return {
+              rawResponse: cleaned,
+              error: "Failed to parse structured response",
+            };
+          }
         } else {
           this.logger.error("Could not find valid JSON object in LLM output");
           return {
@@ -239,15 +248,24 @@ Format your response as a JSON object with these keys: overallPerformance, techn
       const completion = await this.generateCompletion(messages);
 
       try {
-        const sanitized = completion
+        const cleaned = completion
           .replace(/```json[\s\n]*/gi, "")
           .replace(/```/g, "")
+          .replace(/[\u0000-\u001F\u007F]/g, "") // Remove all control chars except standard whitespace
           .trim();
-        const firstBrace = sanitized.indexOf("{");
-        const lastBrace = sanitized.lastIndexOf("}");
+        const firstBrace = cleaned.indexOf("{");
+        const lastBrace = cleaned.lastIndexOf("}");
         if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
-          const jsonString = sanitized.substring(firstBrace, lastBrace + 1);
-          return JSON.parse(jsonString);
+          const jsonString = cleaned.substring(firstBrace, lastBrace + 1);
+          try {
+            return JSON.parse(jsonString);
+          } catch (jsonError) {
+            this.logger.error(`Error parsing JSON response: ${jsonError.message}`);
+            return {
+              rawResponse: cleaned,
+              error: "Failed to parse structured response",
+            };
+          }
         } else {
           this.logger.error("Could not find valid JSON object in LLM output");
           return {
