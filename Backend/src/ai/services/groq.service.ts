@@ -124,6 +124,14 @@ Ask a single, highly relevant follow-up question based on the candidate's latest
       const completion = await this.generateCompletion(messages);
 
       let question = completion.trim();
+      // Remove common meta-commentary or explanations from LLM output
+      if (typeof question === 'string') {
+        question = question
+          .split('\n')
+          .filter(line => !/^\s*(It seems like|Let's |Excellent|Thank you|Next question:|Here's the next question|Great answer!|However,)/.test(line))
+          .join(' ')
+          .trim();
+      }
       // Force intro/experience as the very first question
       if (!previousQuestion && !previousAnswer) {
         question =
