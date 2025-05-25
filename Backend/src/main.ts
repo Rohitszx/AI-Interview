@@ -39,14 +39,9 @@ async function bootstrap() {
 
   app.use(cookieParser());
 
-  // Configure CORS to allow frontend origin
-  // Robust CORS configuration for local development
+  // Configure CORS for production
   app.enableCors({
-    origin: [
-      "http://localhost:8080",
-      "http://127.0.0.1:8080",
-      // Add any other frontend origins if needed
-    ],
+    origin: "*",
     credentials: true,
     methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
     allowedHeaders: [
@@ -62,25 +57,6 @@ async function bootstrap() {
     preflightContinue: false,
     optionsSuccessStatus: 204,
   });
-  app.use((req, res, next) => {
-    // Manual CORS headers for extra safety
-    res.header("Access-Control-Allow-Origin", req.headers.origin || "*");
-    res.header(
-      "Access-Control-Allow-Headers",
-      "Origin, X-Requested-With, Content-Type, Accept, Authorization",
-    );
-    res.header(
-      "Access-Control-Allow-Methods",
-      "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS",
-    );
-    res.header("Access-Control-Allow-Credentials", "true");
-    if (req.method === "OPTIONS") {
-      res.sendStatus(204);
-    } else {
-      next();
-    }
-  });
-  console.log("[CORS] CORS middleware enabled for local frontend origins.");
 
   if (process.env.NODE_ENV !== "production") {
     const config = new DocumentBuilder()
